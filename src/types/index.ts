@@ -19,7 +19,7 @@ export enum Module {
   FallC = '秋C',
   SummerVacation = '夏季休業中',
   SpringVacation = '春季休業中',
-  Anual = '通年',
+  Annual = '通年',
   Unknown = '不明'
 }
 

@@ -20,7 +20,7 @@ const analyzeDayAndPeriod = (str: string): { day: Day; period: number }[] => {
        例1: 月1,2 は、月.*1と月.*2のテストに合格する
        例2: 月・水3は、月.*3と水.*3のテストに合格する
        */
-      if (new RegExp(`${day}.*` + i).test(str)) {
+      if (new RegExp(`${day}[0-9,・]*` + i).test(str)) {
         result.push({
           day: day,
           period: i
@@ -45,7 +45,7 @@ const analyzeModule = (str: string): Module[] => {
   const result: Module[] = []
 
   // 特殊系のマッチング（通年、夏季休業中、春季休業中）
-  if (str.includes(Module.Anual)) result.push(Module.Anual)
+  if (str.includes(Module.Annual)) result.push(Module.Annual)
   if (str.includes(Module.SpringVacation)) result.push(Module.SpringVacation)
   if (str.includes(Module.SummerVacation)) result.push(Module.SummerVacation)
 
@@ -96,14 +96,20 @@ export default (csv: string): Class[] => {
     const periodString = columns[6]
     const roomString = columns[7]
 
+    // 空文字は省く
     const moduleArray = moduleString.split('\n').filter(el => el !== '')
     const periodArray = periodString.split('\n').filter(el => el !== '')
     const roomArray = roomString.split('\n').filter(el => el !== '')
 
-    const count = moduleArray.length
+    const count = Math.max(
+      moduleArray.length,
+      Math.max(periodArray.length, roomArray.length)
+    )
 
     for (let i = 0; i < count; i++) {
-      const modules = analyzeModule(moduleArray[i])
+      const modules = analyzeModule(
+        moduleArray.length === 1 ? moduleArray[0] : moduleArray[i]
+      )
       const when = analyzeDayAndPeriod(
         periodArray.length === 1 ? periodArray[0] : periodArray[i]
       )
