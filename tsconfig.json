@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     /* 基本オプション */
-    "target": "es2017",
+    "target": "es6",
     "module": "commonjs"
   },
   "exclude": [

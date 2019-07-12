@@ -1,3 +1,5 @@
 node_modules
 .idea
-data.csv
+dist
+kdb.csv
+data.json

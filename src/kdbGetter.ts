@@ -1,17 +1,25 @@
 import _axios from 'axios'
 import * as iconv from 'iconv-lite'
 import * as fs from 'fs'
+import * as colors from 'colors'
 
 const axios = _axios.create({
-  responseType: 'arraybuffer'
+  responseType: 'arraybuffer' //Shift_JIS のデータを受け取る都合でbufferで受け取る
 })
 axios.interceptors.response.use(function(response) {
-  response.data = iconv.decode(response.data, 'Shift_JIS')
+  response.data = iconv.decode(response.data, 'Shift_JIS') // Shift_JIS to UTF-8
   return response
 })
 
+/**
+ * KDBからCSVを取得
+ */
 export default async () => {
-  if (fs.existsSync('./data.csv')) return fs.readFileSync('./data.csv', 'utf-8')
+  if (fs.existsSync('./kdb.csv')) {
+    console.log('i Cache file (kdb.csv) found.'.cyan)
+    return fs.readFileSync('./kdb.csv', 'utf-8')
+  }
+  console.log('Downloading csv from kdb...'.cyan)
   const params = {
     pageId: 'SB0070',
     action: 'downloadList',
@@ -47,6 +55,7 @@ export default async () => {
       'Accept-Language': 'ja,ja-JP;q=0.9,en;q=0.8'
     }
   })
-  fs.writeFileSync('./data.csv', res.data)
+  fs.writeFileSync('./kdb.csv', res.data)
+  console.log('✔  Done'.cyan.bold)
   return res.data
 }

@@ -19,7 +19,8 @@ export enum Module {
   FallC = '秋C',
   SummerVacation = '夏季休業中',
   SpringVacation = '春季休業中',
-  Anual = '通年'
+  Anual = '通年',
+  Unknown = '不明'
 }
 
 export enum Day {
@@ -29,5 +30,6 @@ export enum Day {
   Wed = '水',
   Thu = '木',
   Fri = '金',
-  Sat = '土'
+  Sat = '土',
+  Unknown = '不明'
 }
