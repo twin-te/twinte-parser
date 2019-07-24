@@ -15,10 +15,6 @@ axios.interceptors.response.use(function(response) {
  * KDBからCSVを取得
  */
 export default async () => {
-  if (fs.existsSync('./kdb.csv')) {
-    console.log('i Cache file (kdb.csv) found.'.cyan)
-    return fs.readFileSync('./kdb.csv', 'utf-8')
-  }
   console.log('Downloading csv from kdb...'.cyan)
   const params = {
     pageId: 'SB0070',
@@ -55,7 +51,6 @@ export default async () => {
       'Accept-Language': 'ja,ja-JP;q=0.9,en;q=0.8'
     }
   })
-  fs.writeFileSync('./kdb.csv', res.data)
   console.log('✔  Done'.cyan.bold)
   return res.data
 }
