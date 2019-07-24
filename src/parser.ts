@@ -89,7 +89,7 @@ export default (csv: string): Class[] => {
       id: columns[0],
       name: columns[1],
       details: [],
-      teacher: columns[8]
+      instructor: columns[8]
     }
 
     const moduleString = columns[5]

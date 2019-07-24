@@ -7,7 +7,7 @@ export interface Class {
     period: number
     room: string
   }[]
-  teacher: string
+  instructor: string
 }
 
 export enum Module {
