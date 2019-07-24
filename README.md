@@ -1,5 +1,6 @@
+[![npm version](https://badge.fury.io/js/twinte-parser.svg)](https://badge.fury.io/js/twinte-parser)
+![NPM](https://img.shields.io/npm/l/twinte-parser.svg)
 # twinte-parser
-
 Twinte内部で利用するために開発された
 `KdB（筑波大学教育課程編成支援システム 開設科目一覧）`
 のパーサー。
@@ -20,7 +21,7 @@ const csv = await downloadKDB()
 ```
 
 ## Parser
-KDBから取得したcsvをオブジェクトに変換する。
+KdBから取得したcsvをオブジェクトに変換する。
 
 js例
 ```js
