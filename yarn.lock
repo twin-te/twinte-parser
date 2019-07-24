@@ -16,9 +16,19 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
+"@types/cli-progress@^1.8.1":
+  version "1.8.1"
+  resolved "https://registry.yarnpkg.com/@types/cli-progress/-/cli-progress-1.8.1.tgz#f52f2c15ca85acab99617fd91616936faf070bd3"
+  dependencies:
+    "@types/node" "*"
+
 "@types/eslint-visitor-keys@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@types/eslint-visitor-keys/-/eslint-visitor-keys-1.0.0.tgz#1ee30d79544ca84d68d4b3cdb0af4f205663dd2d"
+
+"@types/node@*":
+  version "12.6.8"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.6.8.tgz#e469b4bf9d1c9832aee4907ba8a051494357c12c"
 
 "@types/node@^12.6.2":
   version "12.6.2"

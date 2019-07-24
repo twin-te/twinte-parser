@@ -14,7 +14,7 @@ axios.interceptors.response.use(function(response) {
 /**
  * KDBからCSVを取得
  */
-export default async () => {
+export default async (): Promise<string> => {
   console.log('Downloading csv from kdb...'.cyan)
   const params = {
     pageId: 'SB0070',

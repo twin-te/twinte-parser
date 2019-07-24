@@ -1,8 +1,13 @@
 {
   "compilerOptions": {
-    /* 基本オプション */
-    "target": "es6",
-    "module": "commonjs"
+    "target": "esnext",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "declaration": true,
+    "pretty": true,
+    "newLine": "lf",
+    "outDir": "dist"
   },
   "exclude": [
     "node_modules"
