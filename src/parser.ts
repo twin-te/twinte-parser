@@ -97,9 +97,9 @@ export default (csv: string): Class[] => {
     const roomString = columns[7]
 
     // 空文字は省く
-    const moduleArray = moduleString.split('\n').filter(el => el !== '')
-    const periodArray = periodString.split('\n').filter(el => el !== '')
-    const roomArray = roomString.split('\n').filter(el => el !== '')
+    const moduleArray = moduleString.split('\n')
+    const periodArray = periodString.split('\n')
+    const roomArray = roomString.split('\n')
 
     const count = Math.max(
       moduleArray.length,

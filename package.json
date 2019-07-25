@@ -1,6 +1,6 @@
 {
   "name": "twinte-parser",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Twinte内部で使用するために開発されたKdBパーサ",
   "private": false,
   "main": "dist/index.js",
