@@ -2,8 +2,13 @@ import * as fs from 'fs'
 import kdbGetter from './kdbDownloader'
 import parse from './parser'
 import * as colors from 'colors'
+import * as commandLineArgs from 'command-line-args'
 
 console.log('twinte-parser v0.0.1'.green.bold)
+
+const ops = commandLineArgs([
+  { name: 'year', alias: 'y', defaultValue: undefined }
+])
 
 const main = async () => {
   let csv: string
@@ -12,7 +17,7 @@ const main = async () => {
     console.log('i Cache file (kdb.csv) found.'.cyan)
     csv = fs.readFileSync('./kdb.csv', 'utf-8')
   } else {
-    csv = await kdbGetter()
+    csv = await kdbGetter(ops.year)
     fs.writeFileSync('./kdb.csv', csv)
   }
   const classes = parse(csv)

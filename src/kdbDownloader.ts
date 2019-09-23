@@ -14,12 +14,14 @@ axios.interceptors.response.use(function(response) {
 /**
  * KDBからCSVを取得
  */
-export default async (): Promise<string> => {
+export default async (
+  year: number = new Date().getFullYear()
+): Promise<string> => {
   console.log('Downloading csv from kdb...'.cyan)
   const params = {
     pageId: 'SB0070',
     action: 'downloadList',
-    hdnFy: '2019',
+    hdnFy: year,
     hdnTermCode: '',
     hdnDayCode: '',
     hdnPeriodCode: '',

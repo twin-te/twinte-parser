@@ -68,10 +68,10 @@ enum Day {
 }
 ```
 
-### Class
+### Lecture
 ```typescript
-interface Class {
-  id: string
+interface Lecture {
+  lectureID: string
   name: string
   details: {
     module: Module

@@ -1,4 +1,4 @@
-import { Class, Day, Module } from './types'
+import { Lecture, Day, Module } from './types'
 import * as parseCsv from 'csv-parse/lib/sync'
 import * as _cliProgress from 'cli-progress'
 
@@ -72,7 +72,7 @@ const analyzeModule = (str: string): Module[] => {
  * CSVをパースする
  * @param csv KDBからダウンロードしたcsv文字列
  */
-export default (csv: string): Class[] => {
+export default (csv: string): Lecture[] => {
   //コンソールの進捗バー
   const bar = new _cliProgress.Bar({}, _cliProgress.Presets.shades_classic)
 
@@ -85,8 +85,8 @@ export default (csv: string): Class[] => {
   //////
 
   const classes = rows.map(columns => {
-    const classData: Class = {
-      id: columns[0],
+    const classData: Lecture = {
+      lectureID: columns[0],
       name: columns[1],
       details: [],
       instructor: columns[8]
