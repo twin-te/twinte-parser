@@ -1,5 +1,5 @@
 export interface Lecture {
-  lectureID: string
+  lectureCode: string
   name: string
   details: {
     module: Module

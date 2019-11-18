@@ -86,7 +86,7 @@ export default (csv: string): Lecture[] => {
 
   const classes = rows.map(columns => {
     const classData: Lecture = {
-      lectureID: columns[0],
+      lectureCode: columns[0],
       name: columns[1],
       details: [],
       instructor: columns[8]
