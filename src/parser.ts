@@ -20,7 +20,7 @@ const analyzeDayAndPeriod = (str: string): { day: Day; period: number }[] => {
        例1: 月1,2 は、月.*1と月.*2のテストに合格する
        例2: 月・水3は、月.*3と水.*3のテストに合格する
        */
-      if (new RegExp(`${day}[0-9,・]*` + i).test(str)) {
+      if (new RegExp(`${day}.*${i}`).test(str)) {
         result.push({
           day: day,
           period: i
