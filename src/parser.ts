@@ -27,6 +27,17 @@ const analyzeDayAndPeriod = (str: string): { day: Day; period: number }[] => {
         })
       }
     }
+    // 月1-4 のようなハイフン表記のテスト
+    const longTermTest = new RegExp(`([${day}]).*(\\d)-(\\d)`).exec(str)
+    if (longTermTest) {
+      for (let i = Number(longTermTest[2]); i <= Number(longTermTest[3]); i++) {
+        if (!result.find(el => el.day === day && el.period === i))
+          result.push({
+            day: day,
+            period: i
+          })
+      }
+    }
   })
 
   //どのテストにも合格しなかったが空文字でなければ仮にunknownとする
