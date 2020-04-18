@@ -40,6 +40,12 @@ const analyzeDayAndPeriod = (str: string): { day: Day; period: number }[] => {
     }
   })
 
+  if (/集中/gm.test(str))
+    result.push({
+      day: Day.Intensive,
+      period: 0
+    })
+
   //どのテストにも合格しなかったが空文字でなければ仮にunknownとする
   if (str !== '' && result.length === 0)
     result.push({ day: Day.Unknown, period: 0 })
@@ -80,6 +86,25 @@ const analyzeModule = (str: string): Module[] => {
 }
 
 /**
+ * 標準履修年次の文字列
+ * '1' '1・2' '1 - 3' 等を解析して
+ * [1], [1,2], [1,2,3] のような配列で返す
+ * @param str 解析する文字列
+ */
+const analyzeYear = (str: string): number[] => {
+  const res: number[] = []
+  const seqRes = /(\d) - (\d)/gm.exec(str)
+  if (seqRes) {
+    for (let i = Number(seqRes[1]); i <= Number(seqRes[2]); i++) {
+      res.push(i)
+    }
+  } else {
+    res.push(...str.split('・').map(e => Number(e)))
+  }
+  return res
+}
+
+/**
  * CSVをパースする
  * @param csv KDBからダウンロードしたcsv文字列
  */
@@ -99,6 +124,11 @@ export default (csv: string): Lecture[] => {
     const classData: Lecture = {
       lectureCode: columns[0],
       name: columns[1],
+      credits: Number(columns[3]),
+      type: Number(columns[2]),
+      overview: columns[9],
+      remarks: columns[10],
+      year: analyzeYear(columns[4]),
       details: [],
       instructor: columns[8]
     }

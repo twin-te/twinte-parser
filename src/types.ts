@@ -1,6 +1,11 @@
 export interface Lecture {
   lectureCode: string
   name: string
+  credits: number
+  overview: string
+  remarks: string
+  type: number
+  year: number[]
   details: {
     module: Module
     day: Day
@@ -31,5 +36,6 @@ export enum Day {
   Thu = '木',
   Fri = '金',
   Sat = '土',
+  Intensive = '集中',
   Unknown = '不明'
 }
