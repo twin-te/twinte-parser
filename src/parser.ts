@@ -98,7 +98,7 @@ const analyzeYear = (str: string): number[] => {
     for (let i = Number(seqRes[1]); i <= Number(seqRes[2]); i++) {
       res.push(i)
     }
-  } else {
+  } else if (/・/.test(str)) {
     res.push(...str.split('・').map(e => Number(e)))
   }
   return res
