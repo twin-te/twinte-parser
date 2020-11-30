@@ -70,14 +70,16 @@ const analyzeModule = (str: string): Module[] => {
   if (/春[ABC]*B/gm.test(str)) result.push(Module.SpringB)
   if (/春[ABC]*C/gm.test(str)) result.push(Module.SpringC)
   
+  // 春季休業中のマッチング
+  if (str.includes(Module.SpringVacation)) result.push(Module.SpringVacation)
+
   if (/秋[ABC]*A/gm.test(str)) result.push(Module.FallA)
   if (/秋[ABC]*B/gm.test(str)) result.push(Module.FallB)
   if (/秋[ABC]*C/gm.test(str)) result.push(Module.FallC)
 
-  // 特殊系のマッチング（通年、夏季休業中、春季休業中）
-  if (str.includes(Module.Annual)) result.push(Module.Annual)
-  if (str.includes(Module.SpringVacation)) result.push(Module.SpringVacation)
+  // 秋季休業中、通年のマッチング
   if (str.includes(Module.SummerVacation)) result.push(Module.SummerVacation)
+  if (str.includes(Module.Annual)) result.push(Module.Annual)
 
   //どのモジュールにも判定されなかったが空文字ではない場合、仮にunknownとする
   if (str !== '' && result.length === 0) result.push(Module.Unknown)
