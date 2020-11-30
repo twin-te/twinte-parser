@@ -60,12 +60,7 @@ const analyzeDayAndPeriod = (str: string): { day: Day; period: number }[] => {
  */
 const analyzeModule = (str: string): Module[] => {
   const result: Module[] = []
-
-  // 特殊系のマッチング（通年、夏季休業中、春季休業中）
-  if (str.includes(Module.Annual)) result.push(Module.Annual)
-  if (str.includes(Module.SpringVacation)) result.push(Module.SpringVacation)
-  if (str.includes(Module.SummerVacation)) result.push(Module.SummerVacation)
-
+  
   /*
   /春[ABC]*A/は春A 春AB 春ABCに
   /春[ABC]*B/は春B 春AB 春BCに
@@ -74,10 +69,15 @@ const analyzeModule = (str: string): Module[] => {
   if (/春[ABC]*A/gm.test(str)) result.push(Module.SpringA)
   if (/春[ABC]*B/gm.test(str)) result.push(Module.SpringB)
   if (/春[ABC]*C/gm.test(str)) result.push(Module.SpringC)
-
+  
   if (/秋[ABC]*A/gm.test(str)) result.push(Module.FallA)
   if (/秋[ABC]*B/gm.test(str)) result.push(Module.FallB)
   if (/秋[ABC]*C/gm.test(str)) result.push(Module.FallC)
+
+  // 特殊系のマッチング（通年、夏季休業中、春季休業中）
+  if (str.includes(Module.Annual)) result.push(Module.Annual)
+  if (str.includes(Module.SpringVacation)) result.push(Module.SpringVacation)
+  if (str.includes(Module.SummerVacation)) result.push(Module.SummerVacation)
 
   //どのモジュールにも判定されなかったが空文字ではない場合、仮にunknownとする
   if (str !== '' && result.length === 0) result.push(Module.Unknown)
