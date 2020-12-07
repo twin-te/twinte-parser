@@ -4,7 +4,7 @@ import parse from './parser'
 import * as colors from 'colors'
 import * as commandLineArgs from 'command-line-args'
 
-console.log('twinte-parser v0.0.1'.green.bold)
+console.log('twinte-parser v1.3.2'.green.bold)
 
 const ops = commandLineArgs([
   { name: 'year', alias: 'y', defaultValue: undefined }
