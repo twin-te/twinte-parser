@@ -1,15 +1,86 @@
 import _axios from 'axios'
+import _axiosCookiejarSupport from 'axios-cookiejar-support'
 import * as iconv from 'iconv-lite'
 import * as fs from 'fs'
 import * as colors from 'colors'
 
+_axiosCookiejarSupport(_axios)
+
 const axios = _axios.create({
-  responseType: 'arraybuffer' //Shift_JIS のデータを受け取る都合でbufferで受け取る
+  responseType: 'arraybuffer',
+  withCredentials: true,
+  jar: true,
 })
-axios.interceptors.response.use(function(response) {
-  response.data = iconv.decode(response.data, 'Shift_JIS') // Shift_JIS to UTF-8
-  return response
-})
+
+const postBody = (obj: any) => {
+  const urlParams = new URLSearchParams()
+  Object.keys(obj).forEach((k) => urlParams.append(k, obj[k]))
+  return urlParams
+}
+
+const extractFlowExecutionKey = (html: string) =>
+  html.match(/&_flowExecutionKey=(.*?)"/m)[1]
+
+const grantSession = async (): Promise<string> => {
+  const res = await axios.get<Buffer>('https://kdb.tsukuba.ac.jp/')
+  return extractFlowExecutionKey(iconv.decode(res.data, 'utf8'))
+}
+
+const searchAll = async (flowExecutionKey: string): Promise<string> => {
+  const res = await axios.post<Buffer>(
+    'https://kdb.tsukuba.ac.jp/campusweb/campussquare.do',
+    postBody({
+      _flowExecutionKey: flowExecutionKey,
+      _eventId: 'searchOpeningCourse',
+      index: '',
+      locale: '',
+      nendo: 2020,
+      termCode: '',
+      dayCode: '',
+      periodCode: '',
+      campusCode: '',
+      hierarchy1: '',
+      hierarchy2: '',
+      hierarchy3: '',
+      hierarchy4: '',
+      hierarchy5: '',
+      freeWord: '',
+      _gaiyoFlg: 1,
+      _risyuFlg: 1,
+      _excludeFukaikoFlg: 1,
+      outputFormat: 0,
+    })
+  )
+  return extractFlowExecutionKey(iconv.decode(res.data, 'utf8'))
+}
+
+const downloadCSV = async (flowExecutionKey: string): Promise<string> => {
+  const res = await axios.post<Buffer>(
+    'https://kdb.tsukuba.ac.jp/campusweb/campussquare.do',
+    postBody({
+      _flowExecutionKey: flowExecutionKey,
+      _eventId: 'output',
+      index: '',
+      locale: '',
+      nendo: 2020,
+      termCode: '',
+      dayCode: '',
+      periodCode: '',
+      campusCode: '',
+      hierarchy1: '',
+      hierarchy2: '',
+      hierarchy3: '',
+      hierarchy4: '',
+      hierarchy5: '',
+      freeWord: '',
+      _gaiyoFlg: 1,
+      _risyuFlg: 1,
+      _excludeFukaikoFlg: 1,
+      outputFormat: 0,
+    })
+  )
+  return iconv.decode(res.data, 'Shift_JIS')
+}
 
 /**
  * KDBからCSVを取得
@@ -17,42 +88,8 @@ axios.interceptors.response.use(function(response) {
 export default async (
   year: number = new Date().getFullYear()
 ): Promise<string> => {
-  console.log('Downloading csv from kdb...'.cyan)
-  const params = {
-    pageId: 'SB0070',
-    action: 'downloadList',
-    hdnFy: year,
-    hdnTermCode: '',
-    hdnDayCode: '',
-    hdnPeriodCode: '',
-    hdnAgentName: '',
-    hdnOrg: '',
-    hdnIsManager: '',
-    hdnReq: '',
-    hdnFac: '',
-    hdnDepth: '',
-    hdnChkSyllabi: false,
-    hdnChkAuditor: false,
-    hdnCourse: '',
-    hdnKeywords: '',
-    hdnFullname: '',
-    hdnDispDay: '',
-    hdnDispPeriod: '',
-    hdnOrgName: '',
-    hdnReqName: '',
-    cmbDwldtype: 'csv'
-  }
-  const urlParams = new URLSearchParams()
-  Object.keys(params).forEach(k => urlParams.append(k, params[k]))
-  const res = await axios({
-    method: 'post',
-    url: 'https://kdb.tsukuba.ac.jp',
-    data: urlParams,
-    headers: {
-      'Accept-Encoding': '',
-      'Accept-Language': 'ja,ja-JP;q=0.9,en;q=0.8'
-    }
-  })
-  console.log('✔  Done'.cyan.bold)
-  return res.data
+  let flowExecutionKey = ''
+  flowExecutionKey = await grantSession()
+  flowExecutionKey = await searchAll(flowExecutionKey)
+  return downloadCSV(flowExecutionKey)
 }
