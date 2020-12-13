@@ -54,12 +54,12 @@ const searchAll = async (flowExecutionKey: string): Promise<string> => {
   return extractFlowExecutionKey(iconv.decode(res.data, 'utf8'))
 }
 
-const downloadCSV = async (flowExecutionKey: string): Promise<string> => {
+const downloadExcel = async (flowExecutionKey: string): Promise<Buffer> => {
   const res = await axios.post<Buffer>(
     'https://kdb.tsukuba.ac.jp/campusweb/campussquare.do',
     postBody({
       _flowExecutionKey: flowExecutionKey,
-      _eventId: 'output',
+      _eventId: 'outputOpeningCourseExcel',
       index: '',
       locale: '',
       nendo: 2020,
@@ -76,10 +76,10 @@ const downloadCSV = async (flowExecutionKey: string): Promise<string> => {
       _gaiyoFlg: 1,
       _risyuFlg: 1,
       _excludeFukaikoFlg: 1,
-      outputFormat: 0,
+      outputFormat: 1,
     })
   )
-  return iconv.decode(res.data, 'Shift_JIS')
+  return res.data
 }
 
 /**
@@ -87,9 +87,9 @@ const downloadCSV = async (flowExecutionKey: string): Promise<string> => {
  */
 export default async (
   year: number = new Date().getFullYear()
-): Promise<string> => {
+): Promise<Buffer> => {
   let flowExecutionKey = ''
   flowExecutionKey = await grantSession()
   flowExecutionKey = await searchAll(flowExecutionKey)
-  return downloadCSV(flowExecutionKey)
+  return downloadExcel(flowExecutionKey)
 }
