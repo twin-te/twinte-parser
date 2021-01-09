@@ -3,6 +3,20 @@ import _axiosCookiejarSupport from 'axios-cookiejar-support'
 import * as iconv from 'iconv-lite'
 import * as fs from 'fs'
 import * as colors from 'colors'
+import * as assert from 'assert'
+
+export class NoCoursesFoundError extends Error {
+  public constructor() {
+    super('Search results are empty')
+    Object.defineProperty(this, 'name', {
+      configurable: true,
+      enumerable: false,
+      value: this.constructor.name,
+      writable: true,
+    })
+    Error.captureStackTrace(this, NoCoursesFoundError)
+  }
+}
 
 _axiosCookiejarSupport(_axios)
 
@@ -26,7 +40,10 @@ const grantSession = async (): Promise<string> => {
   return extractFlowExecutionKey(iconv.decode(res.data, 'utf8'))
 }
 
-const searchAll = async (flowExecutionKey: string): Promise<string> => {
+const searchAll = async (
+  flowExecutionKey: string,
+  year: number
+): Promise<string> => {
   const res = await axios.post<Buffer>(
     'https://kdb.tsukuba.ac.jp/campusweb/campussquare.do',
     postBody({
@@ -34,7 +51,7 @@ const searchAll = async (flowExecutionKey: string): Promise<string> => {
       _eventId: 'searchOpeningCourse',
       index: '',
       locale: '',
-      nendo: 2020,
+      nendo: year,
       termCode: '',
       dayCode: '',
       periodCode: '',
@@ -51,10 +68,15 @@ const searchAll = async (flowExecutionKey: string): Promise<string> => {
       outputFormat: 0,
     })
   )
-  return extractFlowExecutionKey(iconv.decode(res.data, 'utf8'))
+  const html = iconv.decode(res.data, 'utf8')
+  if (html.includes('（全部で 0件あります）')) throw new NoCoursesFoundError()
+  return extractFlowExecutionKey(html)
 }
 
-const downloadExcel = async (flowExecutionKey: string): Promise<Buffer> => {
+const downloadExcel = async (
+  flowExecutionKey: string,
+  year
+): Promise<Buffer> => {
   const res = await axios.post<Buffer>(
     'https://kdb.tsukuba.ac.jp/campusweb/campussquare.do',
     postBody({
@@ -62,7 +84,7 @@ const downloadExcel = async (flowExecutionKey: string): Promise<Buffer> => {
       _eventId: 'outputOpeningCourseExcel',
       index: '',
       locale: '',
-      nendo: 2020,
+      nendo: year,
       termCode: '',
       dayCode: '',
       periodCode: '',
@@ -79,6 +101,10 @@ const downloadExcel = async (flowExecutionKey: string): Promise<Buffer> => {
       outputFormat: 1,
     })
   )
+  assert(
+    res.headers.contentType !==
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet .xlsx; charset=UTF-8'
+  )
   return res.data
 }
 
@@ -90,6 +116,6 @@ export default async (
 ): Promise<Buffer> => {
   let flowExecutionKey = ''
   flowExecutionKey = await grantSession()
-  flowExecutionKey = await searchAll(flowExecutionKey)
-  return downloadExcel(flowExecutionKey)
+  flowExecutionKey = await searchAll(flowExecutionKey, year)
+  return downloadExcel(flowExecutionKey, year)
 }

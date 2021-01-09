@@ -128,7 +128,6 @@ const analyzeRow = (columns: string[]) => {
   const periodString = columns[6]
   const roomString = columns[7]
 
-  // 空文字は省く
   const moduleArray = moduleString.split('\r\n')
   const periodArray = periodString.split('\r\n')
   const roomArray = roomString.split('\r\n')
@@ -145,7 +144,6 @@ const analyzeRow = (columns: string[]) => {
       (roomArray.length === count || roomArray.length === 1)
     )
   ) {
-    console.log('Warning!')
     courseData.error = true
   }
 
@@ -171,15 +169,14 @@ const analyzeRow = (columns: string[]) => {
 }
 
 /**
- * CSVをパースする
- * @param csv KDBからダウンロードしたcsv文字列
+ * Excelファイルをパースする
+ * @param data xlsxファイルのバイナリ
  */
 export default (data: Buffer): Course[] => {
   const sheet = readXLSX(data).Sheets['開設科目一覧']
 
   const courses: Course[] = []
 
-  console.log('●  Parsing')
   for (let r = 5; ; r++) {
     const columns: string[] = []
     for (let c = 0; c <= 16; c++)
@@ -187,6 +184,5 @@ export default (data: Buffer): Course[] => {
     if (columns[0] === '') break
     courses.push(analyzeRow(columns))
   }
-  console.log('✔  Done')
   return courses
 }
