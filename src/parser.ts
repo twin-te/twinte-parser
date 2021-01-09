@@ -121,6 +121,7 @@ const analyzeRow = (columns: string[]) => {
     schedules: [],
     instructor: columns[8],
     error: false,
+    lastUpdate: new Date(columns[16] + '+09:00'), // JST保証
   }
 
   const moduleString = columns[5]
@@ -181,7 +182,7 @@ export default (data: Buffer): Course[] => {
   console.log('●  Parsing')
   for (let r = 5; ; r++) {
     const columns: string[] = []
-    for (let c = 0; c < 16; c++)
+    for (let c = 0; c <= 16; c++)
       columns.push(sheet[utils.encode_cell({ r, c })].v)
     if (columns[0] === '') break
     courses.push(analyzeRow(columns))

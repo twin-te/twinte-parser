@@ -14,6 +14,7 @@ export interface Course {
   }[]
   instructor: string
   error: boolean
+  lastUpdate: Date
 }
 
 export enum Module {
