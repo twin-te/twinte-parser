@@ -13,6 +13,7 @@ export interface Lecture {
     room: string
   }[]
   instructor: string
+  error: boolean
 }
 
 export enum Module {

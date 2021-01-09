@@ -120,6 +120,7 @@ const analyzeRow = (columns: string[]) => {
     year: analyzeYear(columns[4]),
     details: [],
     instructor: columns[8],
+    error: false,
   }
 
   const moduleString = columns[5]
@@ -142,15 +143,17 @@ const analyzeRow = (columns: string[]) => {
       (periodArray.length === count || periodArray.length === 1) &&
       (roomArray.length === count || roomArray.length === 1)
     )
-  )
+  ) {
     console.log('Warning!')
+    classData.error = true
+  }
 
   for (let i = 0; i < count; i++) {
     const modules = analyzeModule(
-      moduleArray.length === 1 ? moduleArray[0] : moduleArray[i] || ''
+      moduleArray.length === 1 ? moduleArray[0] : moduleArray[i] || 'unknown'
     )
     const when = analyzeDayAndPeriod(
-      periodArray.length === 1 ? periodArray[0] : periodArray[i] || ''
+      periodArray.length === 1 ? periodArray[0] : periodArray[i] || 'unknown'
     )
     modules.forEach((mod) =>
       when.forEach((w) =>
@@ -181,7 +184,6 @@ export default (data: Buffer): Lecture[] => {
     for (let c = 0; c < 16; c++)
       columns.push(sheet[utils.encode_cell({ r, c })].v)
     if (columns[0] === '') break
-    // console.log(r)
     classes.push(analyzeRow(columns))
   }
   console.log('✔  Done')
