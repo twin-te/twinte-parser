@@ -1,4 +1,4 @@
-import { Lecture, Day, Module } from './types'
+import { Course, Day, Module } from './types'
 import * as parseCsv from 'csv-parse/lib/sync'
 import * as _cliProgress from 'cli-progress'
 import { read as readXLSX, utils } from 'xlsx'
@@ -110,15 +110,15 @@ const analyzeYear = (str: string): number[] => {
 }
 
 const analyzeRow = (columns: string[]) => {
-  const classData: Lecture = {
-    lectureCode: columns[0],
+  const courseData: Course = {
+    code: columns[0],
     name: columns[1],
     credits: Number(columns[3]),
     type: Number(columns[2]),
     overview: columns[9],
     remarks: columns[10],
-    year: analyzeYear(columns[4]),
-    details: [],
+    recommendedGrade: analyzeYear(columns[4]),
+    schedules: [],
     instructor: columns[8],
     error: false,
   }
@@ -145,7 +145,7 @@ const analyzeRow = (columns: string[]) => {
     )
   ) {
     console.log('Warning!')
-    classData.error = true
+    courseData.error = true
   }
 
   for (let i = 0; i < count; i++) {
@@ -157,7 +157,7 @@ const analyzeRow = (columns: string[]) => {
     )
     modules.forEach((mod) =>
       when.forEach((w) =>
-        classData.details.push({
+        courseData.schedules.push({
           module: mod,
           period: w.period,
           day: w.day,
@@ -166,17 +166,17 @@ const analyzeRow = (columns: string[]) => {
       )
     )
   }
-  return classData
+  return courseData
 }
 
 /**
  * CSVをパースする
  * @param csv KDBからダウンロードしたcsv文字列
  */
-export default (data: Buffer): Lecture[] => {
+export default (data: Buffer): Course[] => {
   const sheet = readXLSX(data).Sheets['開設科目一覧']
 
-  const classes: Lecture[] = []
+  const courses: Course[] = []
 
   console.log('●  Parsing')
   for (let r = 5; ; r++) {
@@ -184,8 +184,8 @@ export default (data: Buffer): Lecture[] => {
     for (let c = 0; c < 16; c++)
       columns.push(sheet[utils.encode_cell({ r, c })].v)
     if (columns[0] === '') break
-    classes.push(analyzeRow(columns))
+    courses.push(analyzeRow(columns))
   }
   console.log('✔  Done')
-  return classes
+  return courses
 }
