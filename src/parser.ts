@@ -1,6 +1,7 @@
-import { Lecture, Day, Module } from './types'
+import { Course, Day, Module } from './types'
 import * as parseCsv from 'csv-parse/lib/sync'
 import * as _cliProgress from 'cli-progress'
+import { read as readXLSX, utils } from 'xlsx'
 
 /**
  * '月1,2' 等の曜日と時限の文字列を解析し、分解する
@@ -10,7 +11,7 @@ import * as _cliProgress from 'cli-progress'
 const analyzeDayAndPeriod = (str: string): { day: Day; period: number }[] => {
   const result: { day: Day; period: number }[] = []
   //全ての曜日に対して
-  Object.entries(Day).forEach(k => {
+  Object.entries(Day).forEach((k) => {
     const day = k[1] as Day //月, 火 , .... , 日 のどれか
     // 1から6限について
     for (let i = 1; i <= 6; i++) {
@@ -23,7 +24,7 @@ const analyzeDayAndPeriod = (str: string): { day: Day; period: number }[] => {
       if (new RegExp(`${day}.*${i}`).test(str)) {
         result.push({
           day: day,
-          period: i
+          period: i,
         })
       }
     }
@@ -31,10 +32,10 @@ const analyzeDayAndPeriod = (str: string): { day: Day; period: number }[] => {
     const longTermTest = new RegExp(`([${day}]).*(\\d)-(\\d)`).exec(str)
     if (longTermTest) {
       for (let i = Number(longTermTest[2]); i <= Number(longTermTest[3]); i++) {
-        if (!result.find(el => el.day === day && el.period === i))
+        if (!result.find((el) => el.day === day && el.period === i))
           result.push({
             day: day,
-            period: i
+            period: i,
           })
       }
     }
@@ -43,7 +44,7 @@ const analyzeDayAndPeriod = (str: string): { day: Day; period: number }[] => {
   if (/集中/gm.test(str))
     result.push({
       day: Day.Intensive,
-      period: 0
+      period: 0,
     })
 
   //どのテストにも合格しなかったが空文字でなければ仮にunknownとする
@@ -61,7 +62,6 @@ const analyzeDayAndPeriod = (str: string): { day: Day; period: number }[] => {
 const analyzeModule = (str: string): Module[] => {
   const result: Module[] = []
 
-  
   /*
   /春[ABC]*A/は春A 春AB 春ABCに
   /春[ABC]*B/は春B 春AB 春BCに
@@ -70,14 +70,14 @@ const analyzeModule = (str: string): Module[] => {
   if (/春[ABC]*A/gm.test(str)) result.push(Module.SpringA)
   if (/春[ABC]*B/gm.test(str)) result.push(Module.SpringB)
   if (/春[ABC]*C/gm.test(str)) result.push(Module.SpringC)
-  
+
   // 夏季休業中、通年のマッチング
   if (str.includes(Module.SummerVacation)) result.push(Module.SummerVacation)
 
   if (/秋[ABC]*A/gm.test(str)) result.push(Module.FallA)
   if (/秋[ABC]*B/gm.test(str)) result.push(Module.FallB)
   if (/秋[ABC]*C/gm.test(str)) result.push(Module.FallC)
-  
+
   // 春季休業中のマッチング
   if (str.includes(Module.SpringVacation)) result.push(Module.SpringVacation)
 
@@ -104,78 +104,85 @@ const analyzeYear = (str: string): number[] => {
       res.push(i)
     }
   } else if (/・/.test(str)) {
-    res.push(...str.split('・').map(e => Number(e)))
+    res.push(...str.split('・').map((e) => Number(e)))
   }
   return res
 }
 
-/**
- * CSVをパースする
- * @param csv KDBからダウンロードしたcsv文字列
- */
-export default (csv: string): Lecture[] => {
-  //コンソールの進捗バー
-  const bar = new _cliProgress.Bar({}, _cliProgress.Presets.shades_classic)
+const analyzeRow = (columns: string[]) => {
+  const courseData: Course = {
+    code: columns[0],
+    name: columns[1],
+    credits: Number(columns[3]),
+    type: Number(columns[2]),
+    overview: columns[9],
+    remarks: columns[10],
+    recommendedGrade: analyzeYear(columns[4]),
+    schedules: [],
+    instructor: columns[8],
+    error: false,
+    lastUpdate: new Date(columns[16] + '+09:00'), // JST保証
+  }
 
-  const rows = parseCsv(csv)
+  const moduleString = columns[5]
+  const periodString = columns[6]
+  const roomString = columns[7]
 
-  ////// コンソール表示
-  console.log('●  Parsing'.green.bold)
-  bar.start(rows.length, 0)
-  let done = 0
-  //////
+  const moduleArray = moduleString.split('\r\n')
+  const periodArray = periodString.split('\r\n')
+  const roomArray = roomString.split('\r\n')
 
-  const classes = rows.map(columns => {
-    const classData: Lecture = {
-      lectureCode: columns[0],
-      name: columns[1],
-      credits: Number(columns[3]),
-      type: Number(columns[2]),
-      overview: columns[9],
-      remarks: columns[10],
-      year: analyzeYear(columns[4]),
-      details: [],
-      instructor: columns[8]
-    }
+  const count = Math.max(
+    moduleArray.length,
+    Math.max(periodArray.length, roomArray.length)
+  )
 
-    const moduleString = columns[5]
-    const periodString = columns[6]
-    const roomString = columns[7]
-
-    // 空文字は省く
-    const moduleArray = moduleString.split('\n')
-    const periodArray = periodString.split('\n')
-    const roomArray = roomString.split('\n')
-
-    const count = Math.max(
-      moduleArray.length,
-      Math.max(periodArray.length, roomArray.length)
+  if (
+    !(
+      (moduleArray.length === count || moduleArray.length === 1) &&
+      (periodArray.length === count || periodArray.length === 1) &&
+      (roomArray.length === count || roomArray.length === 1)
     )
+  ) {
+    courseData.error = true
+  }
 
-    for (let i = 0; i < count; i++) {
-      const modules = analyzeModule(
-        moduleArray.length === 1 ? moduleArray[0] : moduleArray[i]
+  for (let i = 0; i < count; i++) {
+    const modules = analyzeModule(
+      moduleArray.length === 1 ? moduleArray[0] : moduleArray[i] || 'unknown'
+    )
+    const when = analyzeDayAndPeriod(
+      periodArray.length === 1 ? periodArray[0] : periodArray[i] || 'unknown'
+    )
+    modules.forEach((mod) =>
+      when.forEach((w) =>
+        courseData.schedules.push({
+          module: mod,
+          period: w.period,
+          day: w.day,
+          room: roomArray.length === 1 ? roomArray[0] : roomArray[i] || '',
+        })
       )
-      const when = analyzeDayAndPeriod(
-        periodArray.length === 1 ? periodArray[0] : periodArray[i]
-      )
-      modules.forEach(mod =>
-        when.forEach(w =>
-          classData.details.push({
-            module: mod,
-            period: w.period,
-            day: w.day,
-            room: roomArray.length === 1 ? roomArray[0] : roomArray[i]
-          })
-        )
-      )
-    }
-    done++
-    bar.update(done)
-    return classData
-  })
+    )
+  }
+  return courseData
+}
 
-  bar.stop()
-  console.log('✔  Done'.green.bold)
-  return classes
+/**
+ * Excelファイルをパースする
+ * @param data xlsxファイルのバイナリ
+ */
+export default (data: Buffer): Course[] => {
+  const sheet = readXLSX(data).Sheets['開設科目一覧']
+
+  const courses: Course[] = []
+
+  for (let r = 5; ; r++) {
+    const columns: string[] = []
+    for (let c = 0; c <= 16; c++)
+      columns.push(sheet[utils.encode_cell({ r, c })].v)
+    if (columns[0] === '') break
+    courses.push(analyzeRow(columns))
+  }
+  return courses
 }

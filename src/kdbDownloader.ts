@@ -1,58 +1,121 @@
 import _axios from 'axios'
+import _axiosCookiejarSupport from 'axios-cookiejar-support'
 import * as iconv from 'iconv-lite'
 import * as fs from 'fs'
 import * as colors from 'colors'
+import * as assert from 'assert'
+
+export class NoCoursesFoundError extends Error {
+  public constructor() {
+    super('Search results are empty')
+    Object.defineProperty(this, 'name', {
+      configurable: true,
+      enumerable: false,
+      value: this.constructor.name,
+      writable: true,
+    })
+    Error.captureStackTrace(this, NoCoursesFoundError)
+  }
+}
+
+_axiosCookiejarSupport(_axios)
 
 const axios = _axios.create({
-  responseType: 'arraybuffer' //Shift_JIS のデータを受け取る都合でbufferで受け取る
+  responseType: 'arraybuffer',
+  withCredentials: true,
+  jar: true,
 })
-axios.interceptors.response.use(function(response) {
-  response.data = iconv.decode(response.data, 'Shift_JIS') // Shift_JIS to UTF-8
-  return response
-})
+
+const postBody = (obj: any) => {
+  const urlParams = new URLSearchParams()
+  Object.keys(obj).forEach((k) => urlParams.append(k, obj[k]))
+  return urlParams
+}
+
+const extractFlowExecutionKey = (html: string) =>
+  html.match(/&_flowExecutionKey=(.*?)"/m)[1]
+
+const grantSession = async (): Promise<string> => {
+  const res = await axios.get<Buffer>('https://kdb.tsukuba.ac.jp/')
+  return extractFlowExecutionKey(iconv.decode(res.data, 'utf8'))
+}
+
+const searchAll = async (
+  flowExecutionKey: string,
+  year: number
+): Promise<string> => {
+  const res = await axios.post<Buffer>(
+    'https://kdb.tsukuba.ac.jp/campusweb/campussquare.do',
+    postBody({
+      _flowExecutionKey: flowExecutionKey,
+      _eventId: 'searchOpeningCourse',
+      index: '',
+      locale: '',
+      nendo: year,
+      termCode: '',
+      dayCode: '',
+      periodCode: '',
+      campusCode: '',
+      hierarchy1: '',
+      hierarchy2: '',
+      hierarchy3: '',
+      hierarchy4: '',
+      hierarchy5: '',
+      freeWord: '',
+      _gaiyoFlg: 1,
+      _risyuFlg: 1,
+      _excludeFukaikoFlg: 1,
+      outputFormat: 0,
+    })
+  )
+  const html = iconv.decode(res.data, 'utf8')
+  if (html.includes('（全部で 0件あります）')) throw new NoCoursesFoundError()
+  return extractFlowExecutionKey(html)
+}
+
+const downloadExcel = async (
+  flowExecutionKey: string,
+  year
+): Promise<Buffer> => {
+  const res = await axios.post<Buffer>(
+    'https://kdb.tsukuba.ac.jp/campusweb/campussquare.do',
+    postBody({
+      _flowExecutionKey: flowExecutionKey,
+      _eventId: 'outputOpeningCourseExcel',
+      index: '',
+      locale: '',
+      nendo: year,
+      termCode: '',
+      dayCode: '',
+      periodCode: '',
+      campusCode: '',
+      hierarchy1: '',
+      hierarchy2: '',
+      hierarchy3: '',
+      hierarchy4: '',
+      hierarchy5: '',
+      freeWord: '',
+      _gaiyoFlg: 1,
+      _risyuFlg: 1,
+      _excludeFukaikoFlg: 1,
+      outputFormat: 1,
+    })
+  )
+  assert(
+    res.headers.contentType !==
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet .xlsx; charset=UTF-8'
+  )
+  return res.data
+}
 
 /**
  * KDBからCSVを取得
  */
 export default async (
   year: number = new Date().getFullYear()
-): Promise<string> => {
-  console.log('Downloading csv from kdb...'.cyan)
-  const params = {
-    pageId: 'SB0070',
-    action: 'downloadList',
-    hdnFy: year,
-    hdnTermCode: '',
-    hdnDayCode: '',
-    hdnPeriodCode: '',
-    hdnAgentName: '',
-    hdnOrg: '',
-    hdnIsManager: '',
-    hdnReq: '',
-    hdnFac: '',
-    hdnDepth: '',
-    hdnChkSyllabi: false,
-    hdnChkAuditor: false,
-    hdnCourse: '',
-    hdnKeywords: '',
-    hdnFullname: '',
-    hdnDispDay: '',
-    hdnDispPeriod: '',
-    hdnOrgName: '',
-    hdnReqName: '',
-    cmbDwldtype: 'csv'
-  }
-  const urlParams = new URLSearchParams()
-  Object.keys(params).forEach(k => urlParams.append(k, params[k]))
-  const res = await axios({
-    method: 'post',
-    url: 'https://kdb.tsukuba.ac.jp',
-    data: urlParams,
-    headers: {
-      'Accept-Encoding': '',
-      'Accept-Language': 'ja,ja-JP;q=0.9,en;q=0.8'
-    }
-  })
-  console.log('✔  Done'.cyan.bold)
-  return res.data
+): Promise<Buffer> => {
+  let flowExecutionKey = ''
+  flowExecutionKey = await grantSession()
+  flowExecutionKey = await searchAll(flowExecutionKey, year)
+  return downloadExcel(flowExecutionKey, year)
 }

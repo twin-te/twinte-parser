@@ -1,18 +1,20 @@
-export interface Lecture {
-  lectureCode: string
+export interface Course {
+  code: string
   name: string
   credits: number
   overview: string
   remarks: string
   type: number
-  year: number[]
-  details: {
+  recommendedGrade: number[]
+  schedules: {
     module: Module
     day: Day
     period: number
     room: string
   }[]
   instructor: string
+  error: boolean
+  lastUpdate: Date
 }
 
 export enum Module {
@@ -25,7 +27,7 @@ export enum Module {
   SummerVacation = '夏季休業中',
   SpringVacation = '春季休業中',
   Annual = '通年',
-  Unknown = '不明'
+  Unknown = '不明',
 }
 
 export enum Day {
@@ -37,5 +39,5 @@ export enum Day {
   Fri = '金',
   Sat = '土',
   Intensive = '集中',
-  Unknown = '不明'
+  Unknown = '不明',
 }

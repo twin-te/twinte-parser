@@ -1,30 +1,31 @@
 import * as fs from 'fs'
-import kdbGetter from './kdbDownloader'
+import downloadKdb from './kdbDownloader'
 import parse from './parser'
 import * as colors from 'colors'
 import * as commandLineArgs from 'command-line-args'
 
-console.log('twinte-parser v1.3.2'.green.bold)
+console.log('twinte-parser v2.0.0')
 
 const ops = commandLineArgs([
-  { name: 'year', alias: 'y', defaultValue: undefined }
+  { name: 'year', alias: 'y', defaultValue: undefined },
 ])
 
 const main = async () => {
-  let csv: string
+  let xlsx: Buffer
 
-  if (fs.existsSync('./kdb.csv')) {
-    console.log('i Cache file (kdb.csv) found.'.cyan)
-    csv = fs.readFileSync('./kdb.csv', 'utf-8')
+  if (fs.existsSync('./kdb.xlsx')) {
+    console.log('Cache file (kdb.xlsx) found.')
+    xlsx = fs.readFileSync('./kdb.xlsx')
   } else {
-    csv = await kdbGetter(ops.year)
-    fs.writeFileSync('./kdb.csv', csv)
+    console.log('Downloading xlsx from kdb.\nIt may take a few minutes.')
+    xlsx = await downloadKdb(ops.year)
+    fs.writeFileSync('./kdb.xlsx', xlsx)
   }
-  const classes = parse(csv)
-  fs.writeFileSync('data.json', JSON.stringify(classes))
-  console.log(
-    'Parsed data has been saved at ${working directory}/data.json'.green
-  )
+  console.log('parsing...')
+  const courses = parse(xlsx)
+  console.log(`${courses.length} courses have been parsed.`)
+  fs.writeFileSync('data.json', JSON.stringify(courses))
+  console.log('Data has been saved at ./data.json')
 }
 
 main()

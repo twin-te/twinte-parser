@@ -9,11 +9,6 @@ Twinte内部で利用するために開発された
 ## KdBDownloader
 KDBからCSVファイルをダウンロードする。
 
-js例
-```js
-const csv = await require('twinte-parser').downloadKDB()
-```
-ts例
 ```typescript
 import { donwloadKDB } from 'twinte-parser'
 
@@ -23,18 +18,12 @@ const csv = await downloadKDB()
 ## Parser
 KdBから取得したcsvをオブジェクトに変換する。
 
-js例
-```js
-const classes = require('twinte-parser').parseKDB(csv)
-```
-
-ts例
 ```typescript
 import parseKDB from 'twinte-parser'
 // or
 import { parseKDB } from 'twinte-parser'
 
-const classes = parseKDB(csv)
+const courses = parseKDB(csv)
 ```
 
 ## 型
@@ -70,35 +59,37 @@ enum Day {
 
 ```
 
-### Lecture
+### Course
 ```typescript
-interface Lecture {
-  lectureCode: string
+interface Course {
+  code: string
   name: string
   credits: number
   overview: string
   remarks: string
   type: number
-  year: number[]
-  details: {
+  recommendedGrade: number[]
+  schedules: {
     module: Module
     day: Day
     period: number
     room: string
   }[]
   instructor: string
+  lastUpdate: Date
+  error: boolean
 }
 ```
 
-ここで`details`が配列になっていることに注意。
+ここで`schedules`が配列になっていることに注意。
 
 例えば春AB・月曜１限・3A201の授業があった場合、
 
 ```typescript
 {
-  id: 'XXXXXXX',
+  code: 'XXXXXXX',
   name: "名前",
-  details: [
+  schedules: [
       {
         module: "春A",
         day: "月",
