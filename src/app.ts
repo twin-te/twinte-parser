@@ -1,10 +1,9 @@
 import * as fs from 'fs'
 import downloadKdb from './kdbDownloader'
 import parse from './parser'
-import * as colors from 'colors'
 import * as commandLineArgs from 'command-line-args'
 
-console.log('twinte-parser v2.0.0')
+console.log('twinte-parser v2.0.1')
 
 const ops = commandLineArgs([
   { name: 'year', alias: 'y', defaultValue: undefined },

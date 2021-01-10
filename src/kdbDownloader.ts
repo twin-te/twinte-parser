@@ -1,8 +1,6 @@
 import _axios from 'axios'
 import _axiosCookiejarSupport from 'axios-cookiejar-support'
 import * as iconv from 'iconv-lite'
-import * as fs from 'fs'
-import * as colors from 'colors'
 import * as assert from 'assert'
 
 export class NoCoursesFoundError extends Error {
@@ -32,8 +30,11 @@ const postBody = (obj: any) => {
   return urlParams
 }
 
-const extractFlowExecutionKey = (html: string) =>
-  html.match(/&_flowExecutionKey=(.*?)"/m)[1]
+const extractFlowExecutionKey = (html: string) => {
+  const key = html.match(/&_flowExecutionKey=(.*?)"/m)[1]
+  assert(key)
+  return key
+}
 
 const grantSession = async (): Promise<string> => {
   const res = await axios.get<Buffer>('https://kdb.tsukuba.ac.jp/')
@@ -109,7 +110,7 @@ const downloadExcel = async (
 }
 
 /**
- * KDBからCSVを取得
+ * KDBからExcelファイルを取得
  */
 export default async (
   year: number = new Date().getFullYear()

@@ -2,6 +2,7 @@ import { Course, Day, Module } from './types'
 import * as parseCsv from 'csv-parse/lib/sync'
 import * as _cliProgress from 'cli-progress'
 import { read as readXLSX, utils } from 'xlsx'
+import * as assert from 'assert'
 
 /**
  * '月1,2' 等の曜日と時限の文字列を解析し、分解する
@@ -137,6 +138,7 @@ const analyzeRow = (columns: string[]) => {
     Math.max(periodArray.length, roomArray.length)
   )
 
+  // データが壊れている可能性がある場合
   if (
     !(
       (moduleArray.length === count || moduleArray.length === 1) &&
@@ -174,7 +176,7 @@ const analyzeRow = (columns: string[]) => {
  */
 export default (data: Buffer): Course[] => {
   const sheet = readXLSX(data).Sheets['開設科目一覧']
-
+  assert(sheet)
   const courses: Course[] = []
 
   for (let r = 5; ; r++) {
