@@ -54,6 +54,8 @@ enum Day {
   Fri = '金',
   Sat = '土',
   Intensive = '集中',
+  Appointment = '応談',
+  AnyTime = '随時',
   Unknown = '不明'
 }
 
