@@ -1,6 +1,4 @@
 import { Course, Day, Module } from './types'
-import * as parseCsv from 'csv-parse/lib/sync'
-import * as _cliProgress from 'cli-progress'
 import { read as readXLSX, utils } from 'xlsx'
 import * as assert from 'assert'
 
@@ -14,8 +12,8 @@ const analyzeDayAndPeriod = (str: string): { day: Day; period: number }[] => {
   //全ての曜日に対して
   Object.entries(Day).forEach((k) => {
     const day = k[1] as Day //月, 火 , .... , 日 のどれか
-    // 1から6限について
-    for (let i = 1; i <= 6; i++) {
+    // 1から8限について
+    for (let i = 1; i <= 8; i++) {
       /*
        strが{曜日}(任意の文字列){時限} にマッチするか調べる
        任意の文字列を間に挟むことで検出が一度で済む
@@ -42,9 +40,24 @@ const analyzeDayAndPeriod = (str: string): { day: Day; period: number }[] => {
     }
   })
 
-  if (/集中/gm.test(str))
+  // 集中
+  if (str.includes(Day.Intensive))
     result.push({
       day: Day.Intensive,
+      period: 0,
+    })
+
+  // 応談
+  if (str.includes(Day.Appointment))
+    result.push({
+      day: Day.Appointment,
+      period: 0,
+    })
+
+  // 随時
+  if (str.includes(Day.AnyTime))
+    result.push({
+      day: Day.AnyTime,
       period: 0,
     })
 
@@ -72,12 +85,25 @@ const analyzeModule = (str: string): Module[] => {
   if (/春[ABC]*B/gm.test(str)) result.push(Module.SpringB)
   if (/春[ABC]*C/gm.test(str)) result.push(Module.SpringC)
 
+  //「 春学期」記述の場合、kdb内部では春A～夏季扱いになっていた
+  if (str.includes('春学期'))
+    result.push(
+      Module.SpringA,
+      Module.SpringB,
+      Module.SpringC,
+      Module.SummerVacation
+    )
+
   // 夏季休業中、通年のマッチング
   if (str.includes(Module.SummerVacation)) result.push(Module.SummerVacation)
 
   if (/秋[ABC]*A/gm.test(str)) result.push(Module.FallA)
   if (/秋[ABC]*B/gm.test(str)) result.push(Module.FallB)
   if (/秋[ABC]*C/gm.test(str)) result.push(Module.FallC)
+
+  //「 秋学期」記述の場合、kdb内部では秋A～春季扱いになっていた
+  if (str.includes('秋学期'))
+    result.push(Module.FallA, Module.FallB, Module.FallC, Module.SpringVacation)
 
   // 春季休業中のマッチング
   if (str.includes(Module.SpringVacation)) result.push(Module.SpringVacation)
