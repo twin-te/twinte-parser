@@ -132,7 +132,7 @@ const analyzeYear = (str: string): number[] => {
     }
   } else if (/・/.test(str)) {
     res.push(...str.split('・').map((e) => Number(e)))
-  } else {
+  } else if (!Number.isNaN(parseInt(str))) {
     res.push(parseInt(str))
   }
   return res
