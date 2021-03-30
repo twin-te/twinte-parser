@@ -1,5 +1,5 @@
-import { Course, Day, Module } from './types'
-import { read as readXLSX, utils } from 'xlsx'
+import {Course, Day, Module} from './types'
+import {read as readXLSX, utils} from 'xlsx'
 import * as assert from 'assert'
 
 /**
@@ -63,7 +63,7 @@ const analyzeDayAndPeriod = (str: string): { day: Day; period: number }[] => {
 
   //どのテストにも合格しなかったが空文字でなければ仮にunknownとする
   if (str !== '' && result.length === 0)
-    result.push({ day: Day.Unknown, period: 0 })
+    result.push({day: Day.Unknown, period: 0})
 
   return result
 }
@@ -142,7 +142,7 @@ const analyzeRow = (columns: string[]) => {
   const courseData: Course = {
     code: columns[0],
     name: columns[1],
-    credits: Number(columns[3]),
+    credits: !Number.isNaN(parseInt(columns[3])) ? Number(columns[3]) : 0,
     type: Number(columns[2]),
     overview: columns[9],
     remarks: columns[10],
@@ -208,10 +208,15 @@ export default (data: Buffer): Course[] => {
   const courses: Course[] = []
 
   for (let r = 5; ; r++) {
+    // sheetの終端で終了
+    if (typeof sheet[utils.encode_cell({r, c: 0})] === 'undefined') break
+
     const columns: string[] = []
     for (let c = 0; c <= 16; c++)
-      columns.push(sheet[utils.encode_cell({ r, c })].v)
-    if (columns[0] === '') break
+      columns.push(sheet[utils.encode_cell({r, c})].v)
+
+    // 科目番号が空の行はスキップ
+    if (columns[0] === '') continue
     courses.push(analyzeRow(columns))
   }
   return courses
