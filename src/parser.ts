@@ -1,5 +1,5 @@
-import {Course, Day, Module} from './types'
-import {read as readXLSX, utils} from 'xlsx'
+import { Course, Day, Module } from './types'
+import { read as readXLSX, utils } from 'xlsx'
 import * as assert from 'assert'
 
 /**
@@ -9,36 +9,52 @@ import * as assert from 'assert'
  */
 const analyzeDayAndPeriod = (str: string): { day: Day; period: number }[] => {
   const result: { day: Day; period: number }[] = []
-  //全ての曜日に対して
-  Object.entries(Day).forEach((k) => {
-    const day = k[1] as Day //月, 火 , .... , 日 のどれか
-    // 1から8限について
-    for (let i = 1; i <= 8; i++) {
-      /*
-       strが{曜日}(任意の文字列){時限} にマッチするか調べる
-       任意の文字列を間に挟むことで検出が一度で済む
-       例1: 月1,2 は、月.*1と月.*2のテストに合格する
-       例2: 月・水3は、月.*3と水.*3のテストに合格する
-       */
-      if (new RegExp(`${day}.*${i}`).test(str)) {
-        result.push({
-          day: day,
-          period: i,
-        })
-      }
-    }
-    // 月1-4 のようなハイフン表記のテスト
-    const longTermTest = new RegExp(`([${day}]).*(\\d)-(\\d)`).exec(str)
-    if (longTermTest) {
-      for (let i = Number(longTermTest[2]); i <= Number(longTermTest[3]); i++) {
-        if (!result.find((el) => el.day === day && el.period === i))
+  /* 本来時限区切り（木1,2）で使われているカンマが
+   * ```
+   * 水2
+   * 月・金3
+   * ```
+   * のように本来改行で区切られている書式の省略版として
+   * 「水2,月・金3」のように使われていることを発見したので
+   * 「,曜日」でsplitして解析を行う
+   */
+  str.split(/,(?=[日月火水木金土])/).forEach((
+    str //全ての曜日に対して
+  ) =>
+    Object.entries(Day).forEach((k) => {
+      const day = k[1] as Day //月, 火 , .... , 日 のどれか
+      // 1から8限について
+      for (let i = 1; i <= 8; i++) {
+        /*
+           strが{曜日}(任意の文字列){時限} にマッチするか調べる
+           任意の文字列を間に挟むことで検出が一度で済む
+           例1: 月1,2 は、月.*1と月.*2のテストに合格する
+           例2: 月・水3は、月.*3と水.*3のテストに合格する
+           */
+        if (new RegExp(`${day}.*${i}`).test(str)) {
           result.push({
             day: day,
             period: i,
           })
+        }
       }
-    }
-  })
+      // 月1-4 のようなハイフン表記のテスト
+      const longTermTest = new RegExp(`([${day}]).*(\\d)-(\\d)`).exec(str)
+      if (longTermTest) {
+        for (
+          let i = Number(longTermTest[2]);
+          i <= Number(longTermTest[3]);
+          i++
+        ) {
+          if (!result.find((el) => el.day === day && el.period === i))
+            result.push({
+              day: day,
+              period: i,
+            })
+        }
+      }
+    })
+  )
 
   // 集中
   if (str.includes(Day.Intensive))
@@ -63,7 +79,7 @@ const analyzeDayAndPeriod = (str: string): { day: Day; period: number }[] => {
 
   //どのテストにも合格しなかったが空文字でなければ仮にunknownとする
   if (str !== '' && result.length === 0)
-    result.push({day: Day.Unknown, period: 0})
+    result.push({ day: Day.Unknown, period: 0 })
 
   return result
 }
@@ -209,11 +225,11 @@ export default (data: Buffer): Course[] => {
 
   for (let r = 5; ; r++) {
     // sheetの終端で終了
-    if (typeof sheet[utils.encode_cell({r, c: 0})] === 'undefined') break
+    if (typeof sheet[utils.encode_cell({ r, c: 0 })] === 'undefined') break
 
     const columns: string[] = []
     for (let c = 0; c <= 16; c++)
-      columns.push(sheet[utils.encode_cell({r, c})].v)
+      columns.push(sheet[utils.encode_cell({ r, c })].v)
 
     // 科目番号が空の行はスキップ
     if (columns[0] === '') continue
