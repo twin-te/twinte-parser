@@ -166,7 +166,7 @@ const analyzeRow = (columns: string[]) => {
     schedules: [],
     instructor: columns[8],
     error: false,
-    lastUpdate: new Date(columns[16] + '+09:00'), // JST保証
+    lastUpdate: new Date(columns[18] + '+09:00'), // JST保証
   }
 
   const moduleString = columns[5]
@@ -228,7 +228,7 @@ export default (data: Buffer): Course[] => {
     if (typeof sheet[utils.encode_cell({ r, c: 0 })] === 'undefined') break
 
     const columns: string[] = []
-    for (let c = 0; c <= 16; c++)
+    for (let c = 0; c <= 18; c++)
       columns.push(sheet[utils.encode_cell({ r, c })].v)
 
     // 科目番号が空の行はスキップ
